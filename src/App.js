@@ -1,30 +1,53 @@
 import React from "react";
+import { useState } from 'react';
+import api from './services/api';
 
 import "./styles.css";
 
 function App() {
+
+  const [repositories, setRepositories] = useState([]);
+
+  useState(() => {
+    api.get("/repositories").then(response => setRepositories(response.data));
+  }, []);
+
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post("/repositories", {
+      title: `Teste: ${Date.now()}`,
+      url: "https://github.com/Haple/bate-ponto-backend",
+      techs: ["NodeJS", "Docker", "PostgreSQL"]
+    });
+
+    setRepositories([...repositories, response.data]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`/repositories/${id}`);
+    setRepositories([...repositories.filter(repository => repository.id !== id)])
   }
 
   return (
-    <div>
-      <ul data-testid="repository-list">
-        <li>
-          Repositório 1
+    <>
+      <h2>Repositories</h2>
 
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+      <ul data-testid="repository-list">
+        {
+          repositories.map(({ title, id }) =>
+            <li key={id}>
+              {title}
+              <button onClick={() => handleRemoveRepository(id)}>
+                Remover
+              </button>
+            </li>
+          )
+        }
+
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
-    </div>
+    </>
   );
 }
 
